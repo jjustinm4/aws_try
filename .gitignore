@@ -1,0 +1,24 @@
+# Node
+frontend/node_modules
+
+# Python
+backend/__pycache__
+backend/.pytest_cache
+*.pyc
+
+# Environment
+.env
+
+# Uploads
+backend/uploads/*
+
+# Database dumps
+*.sql
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db

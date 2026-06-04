@@ -1,0 +1,29 @@
+name: Build Images
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t aws-learning-backend:latest ./backend
+
+      - name: Build frontend image
+        run: docker build -t aws-learning-frontend:latest ./frontend
+
+      - name: Simulate future ECR push
+        run: |
+          echo "Backend image built: aws-learning-backend:latest"
+          echo "Frontend image built: aws-learning-frontend:latest"
+          echo "TODO: Configure AWS credentials using GitHub Actions secrets."
+          echo "TODO: Authenticate Docker with AWS ECR."
+          echo "TODO: Tag and push images to AWS ECR."
+          echo "TODO: Deploy updated containers to AWS EC2."
