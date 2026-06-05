@@ -1,52 +1,46 @@
-name: Build and Push to ECR instance
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aws_learning_postgres
+    environment:
+      POSTGRES_DB: aws_learning
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aws_learning"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-on:
-  push:
-    branches:
-      - main
+  backend:
+    build:
+      context: ./backend
+    container_name: aws_learning_backend
+    user: "${BACKEND_UID:-1000}:${BACKEND_GID:-1000}"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  frontend:
+    build:
+      context: ./frontend
+    container_name: aws_learning_frontend
+    env_file:
+      - .env
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      ECR_BACKEND: aws-try-backend
-      ECR_FRONTEND: aws-try-frontend
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build Backend Image
-        run: |
-          docker build \
-            -t ${{ steps.login-ecr.outputs.registry }}/aws-try-backend:latest \
-            ./backend
-
-      - name: Push Backend Image
-        run: |
-          docker push \
-            ${{ steps.login-ecr.outputs.registry }}/aws-try-backend:latest
-
-      - name: Build Frontend Image
-        run: |
-          docker build \
-            -t ${{ steps.login-ecr.outputs.registry }}/aws-try-frontend:latest \
-            ./frontend
-
-      - name: Push Frontend Image
-        run: |
-          docker push \
-            ${{ steps.login-ecr.outputs.registry }}/aws-try-frontend:latest
+volumes:
+  postgres_data:
