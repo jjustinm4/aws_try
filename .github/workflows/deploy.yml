@@ -1,4 +1,4 @@
-name: Build Images
+name: Test EC2 Deployment
 
 on:
   push:
@@ -6,24 +6,21 @@ on:
       - main
 
 jobs:
-  build:
+  test-ssh:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build backend image
-        run: docker build -t aws-learning-backend:latest ./backend
-
-      - name: Build frontend image
-        run: docker build -t aws-learning-frontend:latest ./frontend
-
-      - name: Simulate future ECR push
+      - name: Create SSH key
         run: |
-          echo "Backend image built: aws-learning-backend:latest"
-          echo "Frontend image built: aws-learning-frontend:latest"
-          echo "TODO: Configure AWS credentials using GitHub Actions secrets."
-          echo "TODO: Authenticate Docker with AWS ECR."
-          echo "TODO: Tag and push images to AWS ECR."
-          echo "TODO: Deploy updated containers to AWS EC2."
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: Test SSH connection
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i key.pem \
+              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+              "mkdir -p ~/github-action-test && echo SUCCESS > ~/github-action-test/test.txt"

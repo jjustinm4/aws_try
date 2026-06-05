@@ -8,6 +8,11 @@ from app.database import Base, engine
 from app.models import ImageStatus
 from app.routes.image import STATUS_RECORD_ID, router as image_router
 
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 
 def initialize_database() -> None:
     # LOCAL POSTGRES -> AWS RDS PostgreSQL
@@ -35,7 +40,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

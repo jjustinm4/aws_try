@@ -9,6 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
+RUN chmod -R a+rX /app/app
 RUN mkdir -p /app/uploads
 
 EXPOSE 8000

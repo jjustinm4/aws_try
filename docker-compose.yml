@@ -20,12 +20,13 @@ services:
     build:
       context: ./backend
     container_name: aws_learning_backend
+    user: "${BACKEND_UID:-1000}:${BACKEND_GID:-1000}"
     env_file:
       - .env
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/uploads:/app/uploads
+      - ./backend/uploads:/app/uploads:Z
     depends_on:
       postgres:
         condition: service_healthy
