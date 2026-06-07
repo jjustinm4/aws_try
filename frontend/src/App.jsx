@@ -103,7 +103,7 @@ export default function App() {
         <div className="header">
           <div>
             <p className="eyebrow">AWS Learning App - CI/CD Test</p>
-            <h1 id="app-title">Single Image Manager CI=CD TEST</h1>
+            <h1 id="app-title">Single Image Manager CI/CD TEST</h1>
           </div>
           <span className={imageUploaded ? "badge badge-ok" : "badge"}>
             {imageUploaded ? "Image stored" : "Empty"}
