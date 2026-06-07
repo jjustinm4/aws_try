@@ -102,7 +102,7 @@ export default function App() {
       <section className="workspace" aria-labelledby="app-title">
         <div className="header">
           <div>
-            <p className="eyebrow">AWS Learning App</p>
+            <p className="eyebrow">AWS Learning App - CI/CD Test</p>
             <h1 id="app-title">Single Image Manager</h1>
           </div>
           <span className={imageUploaded ? "badge badge-ok" : "badge"}>
