@@ -1,47 +1,75 @@
-name: Build and Push to ECR
+name: Build, Push and Deploy
 
 on:
-  push:
-    branches:
-      - main
+push:
+branches:
+- main
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+build-and-push:
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+```
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+  - name: Configure AWS Credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+  - name: Login to Amazon ECR
+    id: login-ecr
+    uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Backend Image
-        run: |
-          docker build \
-            -t ${{ steps.login-ecr.outputs.registry }}/aws-try-backend:latest \
-            ./backend
+  - name: Build Backend Image
+    run: |
+      docker build \
+        -t ${{ steps.login-ecr.outputs.registry }}/aws-try-backend:latest \
+        ./backend
 
-      - name: Push Backend Image
-        run: |
-          docker push \
-            ${{ steps.login-ecr.outputs.registry }}/aws-try-backend:latest
+  - name: Push Backend Image
+    run: |
+      docker push \
+        ${{ steps.login-ecr.outputs.registry }}/aws-try-backend:latest
 
-      - name: Build Frontend Image
-        run: |
-          docker build \
-            -t ${{ steps.login-ecr.outputs.registry }}/aws-try-frontend:latest \
-            ./frontend
+  - name: Build Frontend Image
+    run: |
+      docker build \
+        -t ${{ steps.login-ecr.outputs.registry }}/aws-try-frontend:latest \
+        ./frontend
 
-      - name: Push Frontend Image
-        run: |
-          docker push \
-            ${{ steps.login-ecr.outputs.registry }}/aws-try-frontend:latest
+  - name: Push Frontend Image
+    run: |
+      docker push \
+        ${{ steps.login-ecr.outputs.registry }}/aws-try-frontend:latest
+```
+
+deploy:
+needs: build-and-push
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Deploy to EC2
+    uses: appleboy/ssh-action@v1.0.3
+    with:
+      host: ${{ secrets.EC2_HOST }}
+      username: ${{ secrets.EC2_USER }}
+      key: ${{ secrets.EC2_SSH_KEY }}
+
+      script: |
+        aws ecr get-login-password --region ap-south-1 | docker login \
+        --username AWS \
+        --password-stdin \
+        412329391682.dkr.ecr.ap-south-1.amazonaws.com
+
+        cd ~/deployment
+
+        docker compose pull
+
+        docker compose up -d
+```
